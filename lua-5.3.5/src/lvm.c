@@ -762,9 +762,15 @@ void luaV_finishOp (lua_State *L) {
   lua_assert(base <= L->top && L->top < L->stack + L->stacksize); \
 }
 
+#ifdef USE_COMPUTED_GOTO
+#define vmdispatch(o)	goto *opcode_labels[o];
+#define vmcase(l)	label_##l:
+#define vmbreak		vmfetch(); vmdispatch(GET_OPCODE(i))
+#else
 #define vmdispatch(o)	switch(o)
 #define vmcase(l)	case l:
 #define vmbreak		break
+#endif
 
 /*
 ** copy of 'luaV_gettable', but protecting the call to potential
@@ -787,6 +793,75 @@ void luaV_execute (lua_State *L) {
   LClosure *cl;
   TValue *k;
   StkId base;
+  #ifdef USE_COMPUTED_GOTO
+  #define LABEL(l) [l] = &&label_##l
+  static void* const opcode_labels[] =
+  {
+    LABEL(OP_MOVE),
+    LABEL(OP_LOADK),
+    LABEL(OP_LOADKX),
+    LABEL(OP_LOADBOOL),
+    LABEL(OP_LOADNIL),
+    LABEL(OP_GETUPVAL),
+
+    LABEL(OP_GETTABUP),
+    LABEL(OP_GETTABLE),
+
+    LABEL(OP_SETTABUP),
+    LABEL(OP_SETUPVAL),
+    LABEL(OP_SETTABLE),
+
+    LABEL(OP_NEWTABLE),
+
+    LABEL(OP_SELF),
+
+    LABEL(OP_ADD),
+    LABEL(OP_SUB),
+    LABEL(OP_MUL),
+    LABEL(OP_MOD),
+    LABEL(OP_POW),
+    LABEL(OP_DIV),
+    LABEL(OP_IDIV),
+    LABEL(OP_BAND),
+    LABEL(OP_BOR),
+    LABEL(OP_BXOR),
+    LABEL(OP_SHL),
+    LABEL(OP_SHR),
+    LABEL(OP_UNM),
+    LABEL(OP_BNOT),
+    LABEL(OP_NOT),
+    LABEL(OP_LEN),
+
+    LABEL(OP_CONCAT),
+
+    LABEL(OP_JMP),
+    LABEL(OP_EQ),
+    LABEL(OP_LT),
+    LABEL(OP_LE),
+
+    LABEL(OP_TEST),
+    LABEL(OP_TESTSET),
+
+    LABEL(OP_CALL),
+    LABEL(OP_TAILCALL),
+    LABEL(OP_RETURN),
+
+    LABEL(OP_FORLOOP),
+    LABEL(OP_FORPREP),
+
+    LABEL(OP_TFORCALL),
+    LABEL(OP_TFORLOOP),
+
+    LABEL(OP_SETLIST),
+
+    LABEL(OP_CLOSURE),
+
+    LABEL(OP_VARARG),
+
+    LABEL(OP_EXTRAARG),
+  };
+  #undef LABEL
+  #endif
   ci->callstatus |= CIST_FRESH;  /* fresh invocation of 'luaV_execute" */
  newframe:  /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
