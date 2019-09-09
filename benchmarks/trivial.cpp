@@ -34,9 +34,7 @@ namespace
 
   auto run_with_switch_loop(bytecode const* instructions)
   {
-    auto value = 0.0;
-
-    while(true)
+    for(auto value = 0.0;;)
     {
       switch(*instructions++)
       {
