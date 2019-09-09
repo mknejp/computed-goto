@@ -117,6 +117,7 @@ namespace
     };
 
 #define DISPATCH() goto* labels[*instructions++]
+  DISPATCH();
 
   add1_label:
     value += 1.0;
