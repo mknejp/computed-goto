@@ -116,61 +116,59 @@ namespace
       [bytecode::halt] = &&halt_label,
     };
 
-#define DISPATCH() goto* labels[*instructions++]
-  DISPATCH();
+    auto const next = [&] { return labels[*instructions++]; };
+    goto* next();
 
   add1_label:
     value += 1.0;
-    DISPATCH();
+    goto* next();
   add2_label:
     value += 2.0;
-    DISPATCH();
+    goto* next();
   add3_label:
     value += 3.0;
-    DISPATCH();
+    goto* next();
   add5_label:
     value += 5.0;
-    DISPATCH();
+    goto* next();
   add7_label:
     value += 7.0;
-    DISPATCH();
+    goto* next();
   sub1_label:
     value -= 1.0;
-    DISPATCH();
+    goto* next();
   sub2_label:
     value -= 2.0;
-    DISPATCH();
+    goto* next();
   sub3_label:
     value -= 3.0;
-    DISPATCH();
+    goto* next();
   sub5_label:
     value -= 5.0;
-    DISPATCH();
+    goto* next();
   sub7_label:
     value -= 7.0;
-    DISPATCH();
+    goto* next();
   mul2_label:
     value *= 2.0;
-    DISPATCH();
+    goto* next();
   mul3_label:
     value *= 3.0;
-    DISPATCH();
+    goto* next();
   mul5_label:
     value *= 5.0;
-    DISPATCH();
+    goto* next();
   div2_label:
     value /= 2.0;
-    DISPATCH();
+    goto* next();
   div3_label:
     value /= 3.0;
-    DISPATCH();
+    goto* next();
   div5_label:
     value /= 5.0;
-    DISPATCH();
+    goto* next();
   halt_label:
     return value;
-
-#undef DISPATCH
   }
 
   auto create_instructions(std::size_t count, std::uint_fast64_t seed = std::mt19937_64::default_seed)
