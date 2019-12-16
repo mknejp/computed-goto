@@ -171,67 +171,28 @@ namespace
     return value;
   }
 
-
-  double fun_add1(bytecode const* inst, double);
-  double fun_add2(bytecode const* inst, double);
-  double fun_add3(bytecode const* inst, double);
-  double fun_add5(bytecode const* inst, double);
-  double fun_add7(bytecode const* inst, double);
-  double fun_sub1(bytecode const* inst, double);
-  double fun_sub2(bytecode const* inst, double);
-  double fun_sub3(bytecode const* inst, double);
-  double fun_sub5(bytecode const* inst, double);
-  double fun_sub7(bytecode const* inst, double);
-  double fun_mul2(bytecode const* inst, double);
-  double fun_mul3(bytecode const* inst, double);
-  double fun_mul5(bytecode const* inst, double);
-  double fun_div2(bytecode const* inst, double);
-  double fun_div3(bytecode const* inst, double);
-  double fun_div5(bytecode const* inst, double);
-  double fun_halt(bytecode const* inst, double);
-
-  double (*funs[])(bytecode const*, double) = {
-    [bytecode::add1] = fun_add1,
-    [bytecode::add2] = fun_add2,
-    [bytecode::add3] = fun_add3,
-    [bytecode::add5] = fun_add5,
-    [bytecode::add7] = fun_add7,
-    [bytecode::sub1] = fun_sub1,
-    [bytecode::sub2] = fun_sub2,
-    [bytecode::sub3] = fun_sub3,
-    [bytecode::sub5] = fun_sub5,
-    [bytecode::sub7] = fun_sub7,
-    [bytecode::mul2] = fun_mul2,
-    [bytecode::mul3] = fun_mul3,
-    [bytecode::mul5] = fun_mul5,
-    [bytecode::div2] = fun_div2,
-    [bytecode::div3] = fun_div3,
-    [bytecode::div5] = fun_div5,
-    [bytecode::halt] = fun_halt,
-  };
-
-  inline double rnext(bytecode const* inst, double value) { return funs[*inst](inst + 1, value); };
-
-  double fun_add1(bytecode const* inst, double value) { value += 1.0; return rnext(inst, value); }
-  double fun_add2(bytecode const* inst, double value) { value += 2.0; return rnext(inst, value); }
-  double fun_add3(bytecode const* inst, double value) { value += 3.0; return rnext(inst, value); }
-  double fun_add5(bytecode const* inst, double value) { value += 5.0; return rnext(inst, value); }
-  double fun_add7(bytecode const* inst, double value) { value += 7.0; return rnext(inst, value); }
-  double fun_sub1(bytecode const* inst, double value) { value -= 1.0; return rnext(inst, value); }
-  double fun_sub2(bytecode const* inst, double value) { value -= 2.0; return rnext(inst, value); }
-  double fun_sub3(bytecode const* inst, double value) { value -= 3.0; return rnext(inst, value); }
-  double fun_sub5(bytecode const* inst, double value) { value -= 5.0; return rnext(inst, value); }
-  double fun_sub7(bytecode const* inst, double value) { value -= 7.0; return rnext(inst, value); }
-  double fun_mul2(bytecode const* inst, double value) { value *= 2.0; return rnext(inst, value); }
-  double fun_mul3(bytecode const* inst, double value) { value *= 3.0; return rnext(inst, value); }
-  double fun_mul5(bytecode const* inst, double value) { value *= 5.0; return rnext(inst, value); }
-  double fun_div2(bytecode const* inst, double value) { value /= 2.0; return rnext(inst, value); }
-  double fun_div3(bytecode const* inst, double value) { value /= 3.0; return rnext(inst, value); }
-  double fun_div5(bytecode const* inst, double value) { value /= 5.0; return rnext(inst, value); }
-  double fun_halt(bytecode const*, double value) { return value; }
-
   auto run_with_tail_recursion(bytecode const* instructions) {
-    return rnext(instructions, 0.0);
+    static double (* const funs[17])(double, bytecode const*) = {
+      [bytecode::add1] = [](auto value, auto* inst) { return funs[*inst](value + 1.0, inst + 1); },
+      [bytecode::add2] = [](auto value, auto* inst) { return funs[*inst](value + 2.0, inst + 1); },
+      [bytecode::add3] = [](auto value, auto* inst) { return funs[*inst](value + 3.0, inst + 1); },
+      [bytecode::add5] = [](auto value, auto* inst) { return funs[*inst](value + 5.0, inst + 1); },
+      [bytecode::add7] = [](auto value, auto* inst) { return funs[*inst](value + 7.0, inst + 1); },
+      [bytecode::sub1] = [](auto value, auto* inst) { return funs[*inst](value - 1.0, inst + 1); },
+      [bytecode::sub2] = [](auto value, auto* inst) { return funs[*inst](value - 2.0, inst + 1); },
+      [bytecode::sub3] = [](auto value, auto* inst) { return funs[*inst](value - 3.0, inst + 1); },
+      [bytecode::sub5] = [](auto value, auto* inst) { return funs[*inst](value - 5.0, inst + 1); },
+      [bytecode::sub7] = [](auto value, auto* inst) { return funs[*inst](value - 7.0, inst + 1); },
+      [bytecode::mul2] = [](auto value, auto* inst) { return funs[*inst](value * 2.0, inst + 1); },
+      [bytecode::mul3] = [](auto value, auto* inst) { return funs[*inst](value * 3.0, inst + 1); },
+      [bytecode::mul5] = [](auto value, auto* inst) { return funs[*inst](value * 5.0, inst + 1); },
+      [bytecode::div2] = [](auto value, auto* inst) { return funs[*inst](value / 2.0, inst + 1); },
+      [bytecode::div3] = [](auto value, auto* inst) { return funs[*inst](value / 3.0, inst + 1); },
+      [bytecode::div5] = [](auto value, auto* inst) { return funs[*inst](value / 5.0, inst + 1); },
+      [bytecode::halt] = [](auto value, auto*) { return value; }
+    };
+
+    return funs[*instructions](0.0, instructions + 1);
   }
 
   auto create_instructions(std::size_t count, std::uint_fast64_t seed = std::mt19937_64::default_seed)
